@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define PBL_Huy_Hoang_ int main()
+
 struct NodeLinkProperties {
     _Bool linked;
     int weight;
@@ -69,11 +71,16 @@ void printGraph() {
     }
 }
 
-int main() {
+
+// MAIN
+
+PBL_Huy_Hoang_ {
     node_link_properties_init();
 
     // Example usage
     addEdge(0, 1, 5);
+    addEdge(1, 0, 10);
+    addEdge(2, 1, 99);
 
     printGraph();
 
