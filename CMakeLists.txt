@@ -3,4 +3,4 @@ project(PBL C)
 
 set(CMAKE_C_STANDARD 23)
 
-add_executable(PBL main.c)
+add_executable(PBL ${CMAKE_SOURCE_DIR}/src/main.c)
