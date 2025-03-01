@@ -8,6 +8,14 @@ struct NodeLinkProperties {
     int weight;
 };
 
+// ERROR HANDLER
+
+void handleError(const char* message) {
+    fprintf(stderr, "Error: %s\n", message);
+    exit(1);
+}
+
+
 // Global variables
 
 struct NodeLinkProperties **vNodeLink = nullptr;
@@ -29,8 +37,7 @@ void node_link_properties_init() {
     for (int i = 0; i < ROWS; i++) {
         vNodeLink[i] = malloc(COLS * sizeof(struct NodeLinkProperties));
         if (vNodeLink[i] == NULL) {
-            fprintf(stderr, "Error: Memory allocation failed\n");
-            return;
+            handleError("Error: Memory allocation failed\n");
         }
         for (int j = 0; j < COLS; j++) {
             vNodeLink[i][j] = single_node_link_init();
@@ -40,8 +47,7 @@ void node_link_properties_init() {
 
 void addEdge(const int i,const int j,const int weight) {
     if (vNodeLink == NULL) {
-        fprintf(stderr, "Error: vNodeLink is null\n");
-        return;
+        handleError("Error: vNodeLink is null\n");
     }
     vNodeLink[i][j].linked = true;
     vNodeLink[i][j].weight = weight;
@@ -49,8 +55,7 @@ void addEdge(const int i,const int j,const int weight) {
 
 void removeEdge(const int i, const int j) {
     if (vNodeLink == NULL) {
-        fprintf(stderr, "Error: vNodeLink is NULL\n");
-        return;
+        handleError("Error: vNodeLink is NULL\n");
     }
     vNodeLink[i][j].linked = false;
     vNodeLink[i][j].weight = 0;
@@ -59,7 +64,7 @@ void removeEdge(const int i, const int j) {
 void printGraph() {
     printf("Link Graph:\n");
     if (vNodeLink == NULL) {
-        fprintf(stderr, "Error: vNodeLink is null\n");
+        handleError("Error: vNodeLink is null\n");
         return;
     }
     for (int i = 0; i < 10; i++) {
