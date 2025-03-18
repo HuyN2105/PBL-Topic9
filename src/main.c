@@ -87,6 +87,10 @@ PBL_Huy_Hoang_ {
     addEdge(1, 0, 10);
     addEdge(2, 1, 99);
 
+    addEdge(3, 2, 99);
+
+    removeEdge(3, 2);
+
     printGraph();
 
     // Free allocated memory
