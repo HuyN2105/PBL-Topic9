@@ -4,19 +4,20 @@
 #include <windows.h>
 #include <conio.h>
 #include <stdlib.h>
-#include <SDL.h>
 
-#define MAX 20
+//#include <SDL.h>
+
+#define MAX 20 // số lượng thành phố tối đa
 
 typedef struct {
-    int city;
-    int matrix[MAX][MAX];
-    int visited[MAX];
-    int X[MAX], Toiuu[MAX];
-    int CP;
-    int ans;
-    int dp[1 << MAX][MAX];
-    int path[MAX];
+    int city;  // số lượng thành phố
+    int matrix[MAX][MAX]; // ma trận chi phí
+    int visited[MAX]; // mảng đánh giấu
+    int X[MAX], Toiuu[MAX]; // đường đi hiện tại và đường đi tối ưu
+    int CP;  // chi phí hiện tại
+    int ans; // chi phí nhỏ nhất tìm đc
+    int dp[1 << MAX][MAX];  // bảng nhớ cho quy hoạch  động
+    int path[MAX]; // đường đi tối ưu cho quy hoạch động
 
 } TSP;
 
@@ -61,21 +62,33 @@ void nhap() {
 // Chọn cách nhập dữ liệu
 void laydulieu() {
     int a;
-    printf("|--------------------------------|\n");
-    printf("| 1. Lay du lieu tu file.        |\n");
-    printf("| 2. Nhap du lieu tu ban phim.   |\n");
-    printf("|--------------------------------|");
-    printf("\nHay chon cach thuc:");
+    printf("HAY CHON CACH NHAP DU LIEU:\n");
+    printf("  1. Lay du lieu tu file.        \n");
+    printf("  2. Nhap du lieu tu ban phim.   \n");
+    printf("Lua chon cua ban:");
     scanf("%d", &a);
 
     if (a == 1) {
-        printf("Da lay du lieu.\n");
-        return ;
+        FILE *f = fopen("PBL1.txt", "r");
+        if (f == NULL) {
+            printf("Loi lay file!");
+            exit(1);
+        }
+        fscanf(f, "%d", &tsp.city);  // Đọc số thành phố từ file
+        for (int i = 0; i < tsp.city; i++) {
+            for (int j = 0; j < tsp.city; j++) {
+                fscanf(f, "%d", &tsp.matrix[i][j]);  // Đọc ma trận chi phí
+            }
+        }
+        fclose(f);
     }
-    if (a == 2) nhap();
-    else if (a != 1 && a!=2 )
-        printf("Nhap sai du lieu.\n");
+    else if (a == 2) nhap();
+    else {
+        printf("Ban da nhap sai, hay nhap lai.\n");
+        return laydulieu();
+    }
 }
+
 
 // In kết quả
 void inKetQua(int cost, int route[]) {
@@ -174,14 +187,40 @@ void dynamic_programming() {
     inKetQua(total_cost, tsp.path);
 }
 
+void chayThuatToan() {
+    int b;
+    printf("CHON PHUONG PHAP:\n");
+    printf("1. Nhanh can\n");
+    printf("2. Quy hoach dong\n");
+    printf("Lua chon cua ban: ");
+    scanf("%d", &b);
+    if (b == 1) {
+        printf("Phuong phap nhanh can:\n");
+        branch_and_bound();
+    }
+    else if (b == 2) {
+        printf("Phuong phap quy hoach dong:\n");
+        dynamic_programming();
+    }
+    else {printf("Lua chon khong hop le!\n");
+  return chayThuatToan();
+     }
+}
+
 // MAIN
 int main() {
     info();
     laydulieu();
-    if (tsp.city < 10) {
-        branch_and_bound();
-    } else {
-        dynamic_programming();
-    }
+    chayThuatToan();
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
