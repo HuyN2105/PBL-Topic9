@@ -75,6 +75,16 @@ void nhap(int t) {
             scanf("%d", &tsp.cities[i].Cost_To_City[j]);
         tsp.cities[i].visited = false;
     }
+    printf("DU LIEU:\n");
+    if (t == 1) {
+        printf("%d\n", tsp.cityAmount);
+        for (int i = 0; i < tsp.cityAmount; i++) {
+            for (auto j = 0; j < tsp.cityAmount; j++) {
+                printf("%d ", tsp.cities[i].Cost_To_City[j]);
+            }
+            printf("\n");
+        }
+    }
 }
 
 // Chọn cách nhập dữ liệu
