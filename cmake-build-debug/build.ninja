@@ -49,9 +49,9 @@ cmake_ninja_workdir = C$:/Users/Lenovo/CLionProjects/untitled15/cmake-build-debu
 
 build cmake_object_order_depends_target_untitled15: phony || .
 
-build CMakeFiles/untitled15.dir/main.cpp.obj: CXX_COMPILER__untitled15_unscanned_Debug C$:/Users/Lenovo/CLionProjects/untitled15/main.cpp || cmake_object_order_depends_target_untitled15
-  DEP_FILE = CMakeFiles\untitled15.dir\main.cpp.obj.d
-  FLAGS = -g -std=gnu++23 -fdiagnostics-color=always
+build CMakeFiles/untitled15.dir/main.c.obj: C_COMPILER__untitled15_unscanned_Debug C$:/Users/Lenovo/CLionProjects/untitled15/main.c || cmake_object_order_depends_target_untitled15
+  DEP_FILE = CMakeFiles\untitled15.dir\main.c.obj.d
+  FLAGS = -g -fdiagnostics-color=always
   INCLUDES = -IC:/Users/Lenovo/CLionProjects/untitled15/cmake-build-debug/SDL2/include
   OBJECT_DIR = CMakeFiles\untitled15.dir
   OBJECT_FILE_DIR = CMakeFiles\untitled15.dir
@@ -64,7 +64,7 @@ build CMakeFiles/untitled15.dir/main.cpp.obj: CXX_COMPILER__untitled15_unscanned
 #############################################
 # Link the executable untitled15.exe
 
-build untitled15.exe: CXX_EXECUTABLE_LINKER__untitled15_Debug CMakeFiles/untitled15.dir/main.cpp.obj
+build untitled15.exe: C_EXECUTABLE_LINKER__untitled15_Debug CMakeFiles/untitled15.dir/main.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lSDL2main  -lSDL2  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   LINK_PATH = -LC:/Users/Lenovo/CLionProjects/untitled15/cmake-build-debug/SDL2/lib

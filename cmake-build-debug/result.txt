@@ -1,0 +1,9 @@
+SO THANH PHO: 5 
+CHI PHI:
+99 99 1 99 99 
+99 99 99 99 1 
+99 1 99 99 99 
+1 99 99 99 99 
+99 99 99 1 99 
+Chi phi nho nhat la: 5
+Duong di: Thanh Pho 1 -> Thanh Pho 3 -> Thanh Pho 2 -> Thanh Pho 5 -> Thanh Pho 4 -> Thanh Pho 1

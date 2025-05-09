@@ -9,7 +9,7 @@ set(SDL2_LIB_DIR ${CMAKE_BINARY_DIR}/SDL2/lib)
 include_directories(${SDL2_INCLUDE_DIR})
 link_directories(${SDL2_LIB_DIR})
 
-add_executable(untitled15 main.cpp)
+add_executable(untitled15 main.c)
 
 target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
 
