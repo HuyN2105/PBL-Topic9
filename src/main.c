@@ -66,10 +66,10 @@ void info() {
 }
 
 // Nhập
-void nhap() {
-    printf("Nhap so thanh pho: ");
+void nhap(int t) {
+    if (t == 2) printf("Nhap so thanh pho: ");
     scanf("%d", &tsp.cityAmount);
-    printf("Nhap ma tran chi phi:\n");
+    if (t == 2) printf("Nhap ma tran chi phi:\n");
     for (int i = 0; i < tsp.cityAmount; i++){
         for (int j = 0; j < tsp.cityAmount; j++)
             scanf("%d", &tsp.cities[i].Cost_To_City[j]);
@@ -87,25 +87,14 @@ void laydulieu() {
     scanf("%d", &a);
 
     if (a == 1) {
-        FILE *f = fopen("PBL1.txt", "r");
-        if (f == NULL) {
-            printf("Loi lay file!");
-            exit(1);
-        }
-        fscanf(f, "%d", &tsp.cityAmount);  // Đọc số thành phố từ file
-        for (int i = 0; i < tsp.cityAmount; i++) {
-            for (int j = 0; j < tsp.cityAmount; j++) {
-                fscanf(f, "%d", &tsp.cities[i].Cost_To_City[j]);  // Đọc ma trận chi phí
-            }
-            tsp.cities[i].visited = false;
-        }
-        fclose(f);
+        freopen("data.txt", "r", stdin);
     }
-    else if (a == 2) nhap();
-    else {
+    else if (a != 2) {
         printf("Ban da nhap sai, hay nhap lai.\n");
         return laydulieu();
     }
+    nhap(a);
+    freopen("CON", "r", stdin);
 }
 
 
@@ -222,8 +211,8 @@ void chayThuatToan() {
         dynamic_programming();
     }
     else {printf("Lua chon khong hop le!\n");
-  return chayThuatToan();
-     }
+        return chayThuatToan();
+    }
 }
 
 // MAIN
