@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// #include "HuyN_PBL_Graphic.h"
-// #include "SDL.h"
-// #include "SDL_ttf.h"
+#include "HuyN_PBL_Graphic.h"
+#include "SDL.h"
+#include "SDL_ttf.h"
 
 #define MAX 20 // số lượng thành phố tối đa
 
@@ -17,7 +17,7 @@ typedef struct {
     bool visited;
     int Cost_To_City[MAX];
 
-    // SDL_Pos position;
+    SDL_Pos position;
 
 } city;
 
@@ -121,10 +121,13 @@ void inKetQua(int cost, int route[]) {
 // Tìm chi phí tối thiểu giữa các thành phố
 int min_out_cost() {
     int min = INT_MAX;
-    for (int i = 0; i < tsp.cityAmount; i++)
-        for (int j = 0; j < tsp.cityAmount; j++)
-            if (i != j && tsp.cities[i].Cost_To_City[j] < min)
+    for (int i = 0; i < tsp.cityAmount; i++) {
+        for (int j = 0; j < tsp.cityAmount; j++) {
+            if (i != j && tsp.cities[i].Cost_To_City[j] < min) {
                 min = tsp.cities[i].Cost_To_City[j];
+            }
+        }
+    }
     return min;
 }
 
@@ -226,31 +229,76 @@ void chayThuatToan() {
 }
 
 // MAIN
-int main() {
+int main(int argc, char *argv[]) {
 
-    // if(SDL_Init(SDL_INIT_VIDEO) != 0){
-    //     SDLGraphic_ErrorHandler("SDL_Init", SDL_GetError());
-    // }
-    //
-    // if (TTF_Init() == -1) {
-    //     SDLGraphic_ErrorHandler("TTF_Init", TTF_GetError());
-    // }
-    //
-    // SDL_Window *window = SDL_CreateWindow("Huy_Hoang_PBL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
-    // if(window == nullptr){
-    //     SDLGraphic_ErrorHandler("SDL_CreateWindow", SDL_GetError());
-    // }
-    //
-    // SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    // if (renderer == nullptr) {
-    //     SDLGraphic_ErrorHandler("SDL_CreateRenderer", SDL_GetError());
-    // }
-    //
-    // SDL_ShowWindow(window);
+    if(SDL_Init(SDL_INIT_VIDEO) != 0){
+        SDLGraphic_ErrorHandler("SDL_Init", SDL_GetError());
+    }
+
+    if (TTF_Init() == -1) {
+        SDLGraphic_ErrorHandler("TTF_Init", TTF_GetError());
+    }
+
+    SDL_Window *window = SDL_CreateWindow("Huy_Hoang_PBL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
+    if(window == nullptr){
+        SDLGraphic_ErrorHandler("SDL_CreateWindow", SDL_GetError());
+    }
+
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == nullptr) {
+        SDLGraphic_ErrorHandler("SDL_CreateRenderer", SDL_GetError());
+    }
+
+    SDL_ShowWindow(window);
+
+    // info();
+    // laydulieu();
+    // chayThuatToan();
+
+    bool isRunning = true;
+    SDL_Event event;
+
+    while (isRunning)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+                case SDL_QUIT:
+                    isRunning = false;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    SDL_Pos MousePos;
+                    SDL_GetMouseState(&MousePos.x, &MousePos.y);
+                    // TODO: CLICK TO ADD NODE & CUSTOM SDL_BUTTON
+                default:
+                    break;
+            }
+        }
+
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_RenderClear(renderer);
+
+        // TODO: MAIN GRAPHIC **MAGIC** HAPPEN
 
 
-    info();
-    laydulieu();
-    chayThuatToan();
+        for (int i = 0; i < tsp.cityAmount; i++)
+        {
+            const city city_i = tsp.cities[i];
+            SDLGraphic_DrawNode(renderer, city_i.position);
+            for (int j = i; j < tsp.cityAmount; j++)
+            {
+                SDLGraphic_ConnectNode(renderer, city_i.position, tsp.cities[j].position, city_i.Cost_To_City[j]);
+            }
+        }
+
+
+        SDL_RenderPresent(renderer);
+
+    }
+
+    SDL_Quit();
+    TTF_Quit();
+
     return 0;
 }
