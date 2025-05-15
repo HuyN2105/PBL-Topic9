@@ -5,6 +5,7 @@
 #include <conio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h> // position randomizer
 
 #include "HuyN_PBL_Graphic.h"
 #include "HuyN_SDL_Button.h"
@@ -70,7 +71,8 @@ void info() {
     setcolor(0, 15);
 }
 
-// Nhập
+// ********************************************** DATA INPUT ********************************************** //
+
 void nhap(int t) {
     if (t == 2) printf("Nhap so thanh pho: ");
     scanf("%d", &tsp.cityAmount);
@@ -84,7 +86,7 @@ void nhap(int t) {
     if (t == 1) {
         printf("%d\n", tsp.cityAmount);
         for (int i = 0; i < tsp.cityAmount; i++) {
-            for (auto j = 0; j < tsp.cityAmount; j++) {
+            for (int j = 0; j < tsp.cityAmount; j++) {
                 printf("%d ", tsp.cities[i].Cost_To_City[j]);
             }
             printf("\n");
@@ -98,13 +100,13 @@ void addCity(SDL_Renderer *renderer, SDL_Pos _p)
     tsp.cityAmount++;
     int currentCity_temp = tsp.cityAmount - 1;
     tsp.cities[currentCity_temp].position = _p;
+    SDLGraphic_DrawNode(renderer, _p, tsp.cityAmount, true);
     for (int i = 0; i < currentCity_temp; i++)
     {
         int costAB, costBA;
 
         printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", tsp.cityAmount, i+1);
         scanf("%d", &costAB);
-        printf("\n");
 
         printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", i + 1, tsp.cityAmount);
         scanf("%d", &costBA);
@@ -136,9 +138,94 @@ void laydulieu() {
     freopen("CON", "r", stdin);
 }
 
+char* openFileDialog() {
+    OPENFILENAME ofn;
+    char szFile[260] = {0};
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-// In kết quả
+    if (GetOpenFileName(&ofn) == TRUE) {
+        return _strdup(ofn.lpstrFile); // Return a duplicate of the file path
+    }
+    return NULL; // Return NULL if canceled
+}
+
+
+void get_data_from_file()
+{
+    const char *filePath = openFileDialog();
+
+    if (filePath == NULL) return;
+
+    freopen(filePath, "r", stdin);
+
+    int cityAmount;
+    int costMatrix[MAX][MAX];
+
+    if (scanf("%d", &cityAmount) != 1) {
+        printf("Error reading city amount.\n");
+        return;
+    }
+    tsp.cityAmount = cityAmount;
+    printf("Number of cities: %d\n", cityAmount);
+
+    // Read the cost matrix
+    for (int i = 0; i < cityAmount; i++) {
+        for (int j = 0; j < cityAmount; j++) {
+            if (scanf("%d", &costMatrix[i][j]) != 1) {
+                printf("Error reading cost matrix.\n");
+                return;
+            }
+            tsp.cities[i].Cost_To_City[j] = costMatrix[i][j];
+        }
+    }
+
+    // Seed the random number generator
+    srand((unsigned int)time(NULL));
+
+    // Generate non-overlapping random positions
+    const int minDistance = 40; // Minimum distance between nodes
+    const int windowWidth = 1280;
+    const int windowHeight = 720;
+    const int margin = 50; // Margin from window edges
+    for (int i = 0; i < cityAmount; i++) {
+        bool overlap;
+        do {
+            overlap = false;
+            tsp.cities[i].position.x = margin + (rand() % (windowWidth - 2 * margin));
+            tsp.cities[i].position.y = margin + (rand() % (windowHeight - 2 * margin));
+
+            // Check overlap with all previous cities
+            for (int j = 0; j < i; j++) {
+                int dx = tsp.cities[i].position.x - tsp.cities[j].position.x;
+                int dy = tsp.cities[i].position.y - tsp.cities[j].position.y;
+                int distance = (int)sqrt(dx * dx + dy * dy);
+                if (distance < minDistance) {
+                    overlap = true;
+                    break;
+                }
+            }
+        } while (overlap);
+    }
+
+    free((void*)filePath); // Free the duplicated string
+    freopen("CON", "r", stdin); // SWITCH BACK TO CONSOLE
+}
+
+
+// ********************************************** ALGORITHM ********************************************** //
+
 void inKetQua(int cost, int route[]) {
+    printf("\n");
     printf("Chi phi nho nhat la: %d\n", cost);
     printf("Duong di: ");
     for (int i = 0; i < tsp.cityAmount; i++) {
@@ -246,17 +333,17 @@ void chayThuatToan() {
     scanf("%d", &b);
     if (b == 1) {
         printf("Phuong phap nhanh can:\n");
-        const double currentTick = SDL_GetTicks();
+        const double beforeAlgoTick = SDL_GetTicks();
         branch_and_bound();
         const double afterAlgoTick = SDL_GetTicks();
-        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
+        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (afterAlgoTick - beforeAlgoTick) / 1000.0);
     }
     else if (b == 2) {
         printf("Phuong phap quy hoach dong:\n");
-        const double currentTick = SDL_GetTicks();
+        const double beforeAlgoTick = SDL_GetTicks();
         dynamic_programming();
         const double afterAlgoTick = SDL_GetTicks();
-        printf("QUY HOACH DONG HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
+        printf("QUY HOACH DONG HOAN THANH TINH TOAN TRONG: %.3lfs\n", (afterAlgoTick - beforeAlgoTick) / 1000.0);
     }
     else {printf("Lua chon khong hop le!\n");
         return chayThuatToan();
@@ -265,6 +352,8 @@ void chayThuatToan() {
 
 // MAIN
 int main(int argc, char *argv[]) {
+
+    info();
 
     tsp.cityAmount = 0;
 
@@ -289,15 +378,33 @@ int main(int argc, char *argv[]) {
     SDL_ShowWindow(window);
 
 
-    const HuyN_SDL_Button buttons[1] = {{
-            .x = 1100,
+    const HuyN_SDL_Button buttons[3] = {{
+            .x = 100,
             .y = 20,
-            .w = 60,
+            .w = 200,
             .h = 40,
-            .text = "Start",
+            .text = "MO FILE DU LIEU",
             .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
-        }   // START
+        },  // OPEN FILE
+        {
+            .x = 555,
+            .y = 20,
+            .w = 150,
+            .h = 40,
+            .text = "NHANH CAN",
+            .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
+            .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        },   // NHANH CAN
+        {
+            .x = 960,
+            .y = 20,
+            .w = 220,
+            .h = 40,
+            .text = "QUY HOACH DONG",
+            .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
+            .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        },   // QUY HOACH DONG
     };
 
 
@@ -323,16 +430,28 @@ int main(int argc, char *argv[]) {
 
                     if (SDLButton_isContain(MousePos, buttons[0]))
                     {
-                        chayThuatToan();
 
-                        char c;
-                        printf("TIEP TUC? (Y/N): ");
-                        while (getchar() != '\n');
-                        c = getchar();
-                        if (tolower(c) == 'n')
-                        {
-                            isRunning = false;
-                        }
+                        // TODO: OPEN FILE ⬇️⬇️⬇️
+
+                        get_data_from_file();
+
+                        break;
+                    }
+                    if (SDLButton_isContain(MousePos, buttons[1]))
+                    {
+                        const double currentTick = SDL_GetTicks();
+                        branch_and_bound();
+                        const double afterAlgoTick = SDL_GetTicks();
+                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
+
+                        break;
+                    }
+                    if (SDLButton_isContain(MousePos, buttons[2]))
+                    {
+                        const double currentTick = SDL_GetTicks();
+                        dynamic_programming();
+                        const double afterAlgoTick = SDL_GetTicks();
+                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
 
                         break;
                     }
@@ -340,19 +459,23 @@ int main(int argc, char *argv[]) {
                     addCity(renderer, MousePos);
 
                     break;
-                    // TODO: CLICK TO ADD NODE & CUSTOM SDL_BUTTON
                 case SDL_MOUSEMOTION:
                     SDL_GetMouseState(&MousePos.x, &MousePos.y);
 
-                    if (SDLButton_isContain(MousePos, buttons[0]))
+                    for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
                     {
-                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
-                        SDL_SetCursor(cursor);
-                    } else
-                    {
-                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-                        SDL_SetCursor(cursor);
+                        if (SDLButton_isContain(MousePos, buttons[i]))
+                        {
+                            SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+                            SDL_SetCursor(cursor);
+                            break;
+                        } else
+                        {
+                            SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+                            SDL_SetCursor(cursor);
+                        }
                     }
+
                     break;
                 default:
                     break;
@@ -379,7 +502,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i);
+        for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i + 1, false);
 
         SDL_RenderPresent(renderer);
 

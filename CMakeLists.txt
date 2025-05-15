@@ -13,7 +13,6 @@ link_directories(${SDL2_LIB_DIR})
 
 add_executable(PBL ${CMAKE_SOURCE_DIR}/src/main.c
         include/HuyN_PBL_Graphic.h
-        include/HuyN_PBL_Graphic.h
         include/HuyN_SDL_Button.h)
 
 target_link_libraries(PBL SDL2main SDL2 SDL2_ttf)

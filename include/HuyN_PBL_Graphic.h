@@ -7,6 +7,7 @@
 
 #include "SDL.h"
 #include "SDL_ttf.h"
+#include <math.h>
 
 #ifndef HuyN_PBL_GRAPHIC_H
 #define HuyN_PBL_GRAPHIC_H
@@ -136,7 +137,7 @@ int SDL_RenderFillCircle(SDL_Renderer *renderer, const int x, const int y, const
     return status;
 };
 
-void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id)
+void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id, bool flag)
 {
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderFillCircle(renderer, _p.x, _p.y, 20);
@@ -150,25 +151,83 @@ void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id)
     SDL_Rect textRect = {_p.x - textWidth / 2, _p.y - textHeight / 2, textWidth, textHeight};
     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
     SDL_DestroyTexture(textTexture);
+    if (flag) SDL_RenderPresent(renderer);
 }
+
+// void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, const SDL_Pos _p_node2, const int cost, const bool selected, int id1, int id2)
+// {
+//
+//     // Set draw color
+//     (selected ? SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF) : SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF));
+//
+//     int x_start = _p_node1.x + (id1 < id2? -10 : 10 ),
+//     y_start = _p_node1.y + (id1 < id2? -10 : 10 ),
+//     x_dest = _p_node2.x + (id1 < id2? -10 : 10 ),
+//     y_dest = _p_node2.y + (id1 < id2? -10 : 10 );
+//
+//     const int x_midPoint = x_start + (x_dest - x_start) / 2;
+//     const int y_midPoint = y_start + (y_dest - y_start) / 2;
+//
+//     SDL_RenderDrawLine(renderer, x_start, y_start, x_dest, y_dest);
+//
+//     // TODO: USE SDL_TTF TO ADD COST NUMBER IN BETWEEN INCLUDED CASE WHEN COST IS NULL ( -1 )
+//     if (cost != -1)
+//     {
+//         int textWidth = 60, textHeight = 60;
+//
+//         // int to string
+//         char buffer[20];
+//         sprintf(buffer, "%d", cost);
+//
+//         SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
+//
+//         SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
+//         SDL_Rect textRect = {x_midPoint, y_midPoint, textWidth, textHeight};
+//         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+//         SDL_RenderFillRect(renderer, &textRect);
+//         SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+//         SDL_DestroyTexture(textTexture);
+//     }
+//
+// }
+
 
 void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, const SDL_Pos _p_node2, const int cost, const bool selected, int id1, int id2)
 {
+    // Node radius
+    const int nodeRadius = 20;
+    const int arrowLength = 10; // Length of the arrowhead
 
     // Set draw color
     (selected ? SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF) : SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF));
 
-    int x_start = _p_node1.x + (id1 < id2? -10 : 10 ),
-    y_start = _p_node1.y + (id1 < id2? -10 : 10 ),
-    x_dest = _p_node2.x + (id1 < id2? -10 : 10 ),
-    y_dest = _p_node2.y + (id1 < id2? -10 : 10 );
+    int offset = 5; // Offset to differentiate overlapping lines
+    int x_start = _p_node1.x + (id1 < id2 ? -10 : 10) + (id1 * offset) % 10;
+    int y_start = _p_node1.y + (id1 < id2 ? -10 : 10) + (id1 * offset) % 10;
+    int x_dest = _p_node2.x + (id1 < id2 ? -10 : 10) + (id2 * offset) % 10;
+    int y_dest = _p_node2.y + (id1 < id2 ? -10 : 10) + (id2 * offset) % 10;
 
-    const int x_midPoint = x_start + (x_dest - x_start) / 2;
-    const int y_midPoint = y_start + (y_dest - y_start) / 2;
+    // Calculate direction and back off by radius
+    double angle = atan2(y_dest - y_start, x_dest - x_start);
+    x_dest -= nodeRadius * cos(angle);
+    y_dest -= nodeRadius * sin(angle);
 
+    // Draw the main line
     SDL_RenderDrawLine(renderer, x_start, y_start, x_dest, y_dest);
 
-    // TODO: USE SDL_TTF TO ADD COST NUMBER IN BETWEEN INCLUDED CASE WHEN COST IS NULL ( -1 )
+    // Calculate arrowhead points
+    int arrow_x1 = x_dest - arrowLength * cos(angle - M_PI / 6);
+    int arrow_y1 = y_dest - arrowLength * sin(angle - M_PI / 6);
+    int arrow_x2 = x_dest - arrowLength * cos(angle + M_PI / 6);
+    int arrow_y2 = y_dest - arrowLength * sin(angle + M_PI / 6);
+
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+
+    // Draw the arrowhead
+    SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x1, arrow_y1);
+    SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x2, arrow_y2);
+
+    // Render cost if provided
     if (cost != -1)
     {
         int textWidth = 60, textHeight = 60;
@@ -179,14 +238,17 @@ void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, cons
 
         SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
 
+        // Find midpoint for cost display
+        const int x_midPoint = x_start + (x_dest - x_start) / 2;
+        const int y_midPoint = y_start + (y_dest - y_start) / 2;
+
         SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
-        SDL_Rect textRect = {x_midPoint, y_midPoint, textWidth, textHeight};
+        SDL_Rect textRect = {x_midPoint - textWidth / 2, y_midPoint - textHeight / 2, textWidth, textHeight};
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderFillRect(renderer, &textRect);
         SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
         SDL_DestroyTexture(textTexture);
     }
-
 }
 
 
