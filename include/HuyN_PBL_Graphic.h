@@ -137,6 +137,39 @@ int SDL_RenderFillCircle(SDL_Renderer *renderer, const int x, const int y, const
     return status;
 };
 
+
+void SDLGraphic_RenderDrawTick(SDL_Renderer *renderer, int x, int y)
+{
+    const int boxSize = 30;
+    SDL_Rect box = {x, y, boxSize, boxSize};
+
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderDrawRect(renderer, &box);
+
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+
+    SDL_RenderDrawLine(renderer, x + 5, y + boxSize - boxSize / 3, x + boxSize / 2, y + boxSize - 5);
+    SDL_RenderDrawLine(renderer, x + 5, y + boxSize - boxSize / 3 - 1, x + boxSize / 2, y + boxSize - 4);
+
+    SDL_RenderDrawLine(renderer, x + boxSize / 2, y + boxSize - 5, x + boxSize - 5, y + 5);
+
+    int dx = (x + boxSize - 5) - (x + boxSize / 2);
+    int dy = (y + 5) - (y + boxSize - 5);
+    float length = sqrt(dx * dx + dy * dy);
+    dx = (int)(dx / length);
+    dy = (int)(dy / length);
+
+    int perp_dx = -dy;
+    int perp_dy = dx;
+
+    perp_dx = 1;
+    perp_dy = 0;
+    SDL_RenderDrawLine(renderer,
+                       x + boxSize / 2 + perp_dx, y + boxSize - 5 + perp_dy,
+                       x + boxSize - 5 + perp_dx, y + 5 + perp_dy);
+}
+
+
 void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id, bool flag)
 {
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);

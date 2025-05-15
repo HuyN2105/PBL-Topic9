@@ -16,7 +16,7 @@
 
 
 bool isRunning = true;
-
+bool isSaveToFile = false;
 
 typedef struct {
     int id;
@@ -232,6 +232,18 @@ void inKetQua(int cost, int route[]) {
         printf("Thanh Pho %d -> ", route[i] + 1);
     }
     printf("Thanh Pho %d\n", route[0] + 1);
+
+    if (isSaveToFile)
+    {
+        freopen("result.txt", "w", stdout);
+        for (int i = 0; i < tsp.cityAmount; i++)
+        {
+            printf("%d ", route[i] + 1);
+        }
+        freopen("CON", "w", stdout);
+        printf("\n###### DA LUU KET QUA VAO FILE RESULT.TXT ######\n");
+    }
+
 }
 
 // Tìm chi phí tối thiểu giữa các thành phố
@@ -378,7 +390,7 @@ int main(int argc, char *argv[]) {
     SDL_ShowWindow(window);
 
 
-    const HuyN_SDL_Button buttons[3] = {{
+    const HuyN_SDL_Button buttons[4] = {{
             .x = 100,
             .y = 20,
             .w = 200,
@@ -402,6 +414,15 @@ int main(int argc, char *argv[]) {
             .w = 220,
             .h = 40,
             .text = "QUY HOACH DONG",
+            .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
+            .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        },   // QUY HOACH DONG
+        {
+            .x = 1020,
+            .y = 660,
+            .w = 160,
+            .h = 40,
+            .text = "LUU FILE",
             .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
         },   // QUY HOACH DONG
@@ -431,8 +452,6 @@ int main(int argc, char *argv[]) {
                     if (SDLButton_isContain(MousePos, buttons[0]))
                     {
 
-                        // TODO: OPEN FILE ⬇️⬇️⬇️
-
                         get_data_from_file();
 
                         break;
@@ -455,13 +474,17 @@ int main(int argc, char *argv[]) {
 
                         break;
                     }
+                    if (SDLButton_isContain(MousePos, buttons[3]))
+                    {
+                        isSaveToFile = !isSaveToFile;
+                        break;
+                    }
 
                     addCity(renderer, MousePos);
 
                     break;
                 case SDL_MOUSEMOTION:
                     SDL_GetMouseState(&MousePos.x, &MousePos.y);
-
                     for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
                     {
                         if (SDLButton_isContain(MousePos, buttons[i]))
@@ -469,13 +492,10 @@ int main(int argc, char *argv[]) {
                             SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
                             SDL_SetCursor(cursor);
                             break;
-                        } else
-                        {
-                            SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-                            SDL_SetCursor(cursor);
                         }
+                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+                        SDL_SetCursor(cursor);
                     }
-
                     break;
                 default:
                     break;
@@ -503,6 +523,14 @@ int main(int argc, char *argv[]) {
         }
 
         for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i + 1, false);
+
+        // SAVE TO FILE CHECKBOX
+        SDL_Rect rect = {1140, 663, 30, 30};
+        SDL_SetRenderDrawColor(renderer, 0x50, 0x50, 0x50, 0xFF);
+        SDL_RenderDrawRect(renderer, &rect);
+        SDL_SetRenderDrawColor(renderer, 0xA0, 0xA0, 0xA0, 0xFF);
+        SDL_RenderFillRect(renderer, &rect);
+        if (isSaveToFile) SDLGraphic_RenderDrawTick(renderer, rect.x, rect.y);
 
         SDL_RenderPresent(renderer);
 
