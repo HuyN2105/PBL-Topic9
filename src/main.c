@@ -7,10 +7,15 @@
 #include <stdbool.h>
 
 #include "HuyN_PBL_Graphic.h"
+#include "HuyN_SDL_Button.h"
 #include "SDL.h"
 #include "SDL_ttf.h"
 
 #define MAX 20 // số lượng thành phố tối đa
+
+
+bool isRunning = true;
+
 
 typedef struct {
     int id;
@@ -86,6 +91,30 @@ void nhap(int t) {
         }
     }
 }
+
+
+void addCity(SDL_Renderer *renderer, SDL_Pos _p)
+{
+    tsp.cityAmount++;
+    int currentCity_temp = tsp.cityAmount - 1;
+    tsp.cities[currentCity_temp].position = _p;
+    for (int i = 0; i < currentCity_temp; i++)
+    {
+        int costAB, costBA;
+
+        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", tsp.cityAmount, i+1);
+        scanf("%d", &costAB);
+        printf("\n");
+
+        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", i + 1, tsp.cityAmount);
+        scanf("%d", &costBA);
+
+        tsp.cities[currentCity_temp].Cost_To_City[i] = costAB;
+        tsp.cities[i].Cost_To_City[currentCity_temp] = costBA;
+        printf("\n");
+    }
+}
+
 
 // Chọn cách nhập dữ liệu
 void laydulieu() {
@@ -217,11 +246,17 @@ void chayThuatToan() {
     scanf("%d", &b);
     if (b == 1) {
         printf("Phuong phap nhanh can:\n");
+        const double currentTick = SDL_GetTicks();
         branch_and_bound();
+        const double afterAlgoTick = SDL_GetTicks();
+        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
     }
     else if (b == 2) {
         printf("Phuong phap quy hoach dong:\n");
+        const double currentTick = SDL_GetTicks();
         dynamic_programming();
+        const double afterAlgoTick = SDL_GetTicks();
+        printf("QUY HOACH DONG HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
     }
     else {printf("Lua chon khong hop le!\n");
         return chayThuatToan();
@@ -230,6 +265,8 @@ void chayThuatToan() {
 
 // MAIN
 int main(int argc, char *argv[]) {
+
+    tsp.cityAmount = 0;
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0){
         SDLGraphic_ErrorHandler("SDL_Init", SDL_GetError());
@@ -251,12 +288,26 @@ int main(int argc, char *argv[]) {
 
     SDL_ShowWindow(window);
 
+
+    const HuyN_SDL_Button buttons[1] = {{
+            .x = 1100,
+            .y = 20,
+            .w = 60,
+            .h = 40,
+            .text = "Start",
+            .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
+            .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        }   // START
+    };
+
+
     // info();
     // laydulieu();
     // chayThuatToan();
 
-    bool isRunning = true;
+    isRunning = true;
     SDL_Event event;
+    SDL_Pos MousePos = {0, 0};
 
     while (isRunning)
     {
@@ -268,9 +319,41 @@ int main(int argc, char *argv[]) {
                     isRunning = false;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    SDL_Pos MousePos;
                     SDL_GetMouseState(&MousePos.x, &MousePos.y);
+
+                    if (SDLButton_isContain(MousePos, buttons[0]))
+                    {
+                        chayThuatToan();
+
+                        char c;
+                        printf("TIEP TUC? (Y/N): ");
+                        while (getchar() != '\n');
+                        c = getchar();
+                        if (tolower(c) == 'n')
+                        {
+                            isRunning = false;
+                        }
+
+                        break;
+                    }
+
+                    addCity(renderer, MousePos);
+
+                    break;
                     // TODO: CLICK TO ADD NODE & CUSTOM SDL_BUTTON
+                case SDL_MOUSEMOTION:
+                    SDL_GetMouseState(&MousePos.x, &MousePos.y);
+
+                    if (SDLButton_isContain(MousePos, buttons[0]))
+                    {
+                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+                        SDL_SetCursor(cursor);
+                    } else
+                    {
+                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+                        SDL_SetCursor(cursor);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -281,17 +364,22 @@ int main(int argc, char *argv[]) {
 
         // TODO: MAIN GRAPHIC **MAGIC** HAPPEN
 
+        for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
+        {
+            SDLButton_draw(renderer, buttons[i]);
+        }
 
         for (int i = 0; i < tsp.cityAmount; i++)
         {
             const city city_i = tsp.cities[i];
-            SDLGraphic_DrawNode(renderer, city_i.position);
-            for (int j = i; j < tsp.cityAmount; j++)
+            for (int j = 0; j < tsp.cityAmount; j++)
             {
-                SDLGraphic_ConnectNode(renderer, city_i.position, tsp.cities[j].position, city_i.Cost_To_City[j]);
+                if (i == j) continue;
+                SDLGraphic_ConnectNode(renderer, city_i.position, tsp.cities[j].position, city_i.Cost_To_City[j], false, i, j);
             }
         }
 
+        for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i);
 
         SDL_RenderPresent(renderer);
 

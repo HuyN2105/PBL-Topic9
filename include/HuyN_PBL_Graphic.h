@@ -29,9 +29,9 @@ void SDLGraphic_ErrorHandler(char *message,...)
 // *********************************************** SDL_TTF *********************************************** //
 
 
-TTF_Font *Font()
+TTF_Font *Font(const int size)
 {
-    TTF_Font *font = TTF_OpenFont("Roboto.ttf", 30);
+    TTF_Font *font = TTF_OpenFont("Roboto.ttf", size);
     if (!font)
 {
         SDLGraphic_ErrorHandler("TTF_OpenFont", TTF_GetError());
@@ -40,17 +40,15 @@ TTF_Font *Font()
 }
 
 
-SDL_Texture *getTextTexture(SDL_Renderer *renderer, const char *text)
+SDL_Texture *getTextTexture(SDL_Renderer *renderer, const char *text, int fontSize, SDL_Color fgColor)
 {
 
-    TTF_Font *font = Font();
+    TTF_Font *font = Font(fontSize);
 
-    const SDL_Color textColor = {0xFF, 0xFF, 0xFF, 0xFF};
-
-    SDL_Surface *textSurface = TTF_RenderText_Solid(font, text, textColor);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, text, fgColor);
     if (!textSurface)
     {
-        SDLGraphic_ErrorHandler("TTF_RenderText_Solid", TTF_GetError());
+        SDLGraphic_ErrorHandler("TTF_RenderText", TTF_GetError());
     }
 
     SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
@@ -107,36 +105,88 @@ int SDL_RenderDrawCircle(SDL_Renderer *renderer,const int x,const int y,const in
     return status;
 };
 
-void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p)
+int SDL_RenderFillCircle(SDL_Renderer *renderer, const int x, const int y, const int radius) {
+    int offsetX = 0;
+    int offsetY = radius;
+    int d = radius - 1;
+    int status = 0;
+    while (offsetY >= offsetX) {
+        status += SDL_RenderDrawLine(renderer, x - offsetY, y + offsetX, x + offsetY, y + offsetX);
+        status += SDL_RenderDrawLine(renderer, x - offsetX, y + offsetY, x + offsetX, y + offsetY);
+        status += SDL_RenderDrawLine(renderer, x - offsetX, y - offsetY, x + offsetX, y - offsetY);
+        status += SDL_RenderDrawLine(renderer, x - offsetY, y - offsetX, x + offsetY, y - offsetX);
+        if (status < 0) {
+            status = -1;
+            break;
+        }
+        if (d >= 2*offsetX) {
+            d -= 2*offsetX + 1;
+            offsetX +=1;
+        }
+        else if (d < 2 * (radius - offsetY)) {
+            d += 2 * offsetY - 1;
+            offsetY -= 1;
+        }
+        else {
+            d += 2 * (offsetY - offsetX - 1);
+            offsetY -= 1;
+            offsetX += 1;
+        }
+    }
+    return status;
+};
+
+void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id)
 {
-    SDL_RenderDrawCircle(renderer, _p.x, _p.y, 10);
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_RenderFillCircle(renderer, _p.x, _p.y, 20);
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderDrawCircle(renderer, _p.x, _p.y, 20);
+    int textWidth = 16, textHeight = 16;
+    char buffer[20];
+    sprintf(buffer, "%d", _id);
+    SDL_Texture *textTexture = getTextTexture(renderer, buffer, 25, (SDL_Color){0xFF, 0xFF, 0x00, 0xFF});
+    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
+    SDL_Rect textRect = {_p.x - textWidth / 2, _p.y - textHeight / 2, textWidth, textHeight};
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_DestroyTexture(textTexture);
 }
 
-void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, const SDL_Pos _p_node2, const int cost)
+void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, const SDL_Pos _p_node2, const int cost, const bool selected, int id1, int id2)
 {
-    int x_start = _p_node1.x, y_start = _p_node1.y, x_dest = _p_node1.x, y_dest = _p_node1.y;
-    x_start /= 2 - 5;
-    y_start /= 2 - 5;
 
-    const int x_midPoint = (x_start + x_dest) / 2;
-    const int y_midPoint = (y_start + y_dest) / 2;
+    // Set draw color
+    (selected ? SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF) : SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF));
 
-    x_dest /= 2 - 5;
-    y_dest /= 2 - 5;
-    SDL_RenderDrawLine(renderer, x_start, y_start, x_midPoint - 5, y_midPoint - 5);
+    int x_start = _p_node1.x + (id1 < id2? -10 : 10 ),
+    y_start = _p_node1.y + (id1 < id2? -10 : 10 ),
+    x_dest = _p_node2.x + (id1 < id2? -10 : 10 ),
+    y_dest = _p_node2.y + (id1 < id2? -10 : 10 );
 
+    const int x_midPoint = x_start + (x_dest - x_start) / 2;
+    const int y_midPoint = y_start + (y_dest - y_start) / 2;
 
-    // TODO: USE SDL_TTF TO ADD COST NUMBER IN BETWEEN
+    SDL_RenderDrawLine(renderer, x_start, y_start, x_dest, y_dest);
 
-    int textWidth = 10, textHeight = 10;
+    // TODO: USE SDL_TTF TO ADD COST NUMBER IN BETWEEN INCLUDED CASE WHEN COST IS NULL ( -1 )
+    if (cost != -1)
+    {
+        int textWidth = 60, textHeight = 60;
 
-    SDL_Texture *textTexture = getTextTexture(renderer, cost + "");
+        // int to string
+        char buffer[20];
+        sprintf(buffer, "%d", cost);
 
-    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
-    SDL_Rect textRect = {x_midPoint - 5, y_midPoint - 5, textWidth, textHeight};
-    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
 
-    SDL_RenderDrawLine(renderer, x_midPoint + 5, y_midPoint + 5, x_dest, y_dest);
+        SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
+        SDL_Rect textRect = {x_midPoint, y_midPoint, textWidth, textHeight};
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_RenderFillRect(renderer, &textRect);
+        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+        SDL_DestroyTexture(textTexture);
+    }
+
 }
 
 
