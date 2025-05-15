@@ -228,7 +228,7 @@ void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, cons
     SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x2, arrow_y2);
 
     // Render cost if provided
-    if (cost != -1)
+    if (cost > 0)
     {
         int textWidth = 60, textHeight = 60;
 

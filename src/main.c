@@ -442,7 +442,7 @@ int main(int argc, char *argv[]) {
                         const double currentTick = SDL_GetTicks();
                         branch_and_bound();
                         const double afterAlgoTick = SDL_GetTicks();
-                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
+                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", abs(currentTick - afterAlgoTick) / 1000.0);
 
                         break;
                     }
@@ -451,7 +451,7 @@ int main(int argc, char *argv[]) {
                         const double currentTick = SDL_GetTicks();
                         dynamic_programming();
                         const double afterAlgoTick = SDL_GetTicks();
-                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (currentTick - afterAlgoTick) / 1000.0);
+                        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", abs(currentTick - afterAlgoTick) / 1000.0);
 
                         break;
                     }
