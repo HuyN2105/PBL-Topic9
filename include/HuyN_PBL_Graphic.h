@@ -267,7 +267,7 @@ void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, cons
     int arrow_x2 = x_dest - arrowLength * cos(angle + M_PI / 6);
     int arrow_y2 = y_dest - arrowLength * sin(angle + M_PI / 6);
 
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
 
     // Draw the arrowhead
     SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x1, arrow_y1);
