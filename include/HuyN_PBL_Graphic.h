@@ -62,6 +62,17 @@ SDL_Texture *getTextTexture(SDL_Renderer *renderer, const char *text, int fontSi
     return textTexture;
 }
 
+void SDLGraphic_RenderText(SDL_Renderer *renderer, const char *text, int fontSize, SDL_Color fgColor, SDL_Rect textRect)
+{
+    TTF_Font *font = Font(fontSize);
+
+    SDL_Texture *textTexture = getTextTexture(renderer, text, fontSize, fgColor);
+
+    SDL_QueryTexture(textTexture, NULL, NULL, &textRect.w, &textRect.h);
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_DestroyTexture(textTexture);
+
+}
 
 // ********************************************** SDL DRAW ********************************************** //
 
@@ -227,6 +238,8 @@ void SDLGraphic_DrawNode(SDL_Renderer *renderer, const SDL_Pos _p, int _id, bool
 
 void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, const SDL_Pos _p_node2, const int cost, const bool selected, int id1, int id2)
 {
+    if (cost < 0 && !selected) return;
+
     // Node radius
     const int nodeRadius = 20;
     const int arrowLength = 10; // Length of the arrowhead
@@ -260,28 +273,24 @@ void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, cons
     SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x1, arrow_y1);
     SDL_RenderDrawLine(renderer, x_dest, y_dest, arrow_x2, arrow_y2);
 
-    // Render cost if provided
-    if (cost > 0)
-    {
-        int textWidth = 60, textHeight = 60;
+    int textWidth = 60, textHeight = 60;
 
-        // int to string
-        char buffer[20];
-        sprintf(buffer, "%d", cost);
+    if (cost < 0) return;
+    // int to string
+    char buffer[20];
+    sprintf(buffer, "%d", cost);
+    SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
 
-        SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
+    // Find midpoint for cost display
+    const int x_midPoint = x_start + (x_dest - x_start) / 2;
+    const int y_midPoint = y_start + (y_dest - y_start) / 2;
+    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
 
-        // Find midpoint for cost display
-        const int x_midPoint = x_start + (x_dest - x_start) / 2;
-        const int y_midPoint = y_start + (y_dest - y_start) / 2;
-
-        SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
-        SDL_Rect textRect = {x_midPoint - textWidth / 2, y_midPoint - textHeight / 2, textWidth, textHeight};
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-        SDL_RenderFillRect(renderer, &textRect);
-        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-        SDL_DestroyTexture(textTexture);
-    }
+    SDL_Rect textRect = {x_midPoint - textWidth / 2, y_midPoint - textHeight / 2, textWidth, textHeight};
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_RenderFillRect(renderer, &textRect);
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_DestroyTexture(textTexture);
 }
 
 

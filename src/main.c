@@ -95,7 +95,84 @@ void nhap(int t) {
 }
 
 
-void addCity(SDL_Renderer *renderer, SDL_Pos _p)
+void keyInputWait(SDL_Renderer *renderer, SDL_Event _event, SDL_Pos _p_node1, SDL_Pos _p_node2, int *cost, int id1, int id2)
+{
+
+    SDLGraphic_ConnectNode(renderer, _p_node1, _p_node2, -1, true, id1, id2);
+    SDL_RenderPresent(renderer);
+
+    bool awaitInput = true;
+    *cost = 0;
+    while (awaitInput)
+    {
+        while (SDL_PollEvent(&_event))
+        {
+            switch (_event.type)
+            {
+            case SDL_QUIT:
+                isRunning = false;
+                break;
+            case SDL_KEYDOWN:
+                // 0 -> 9 : 48 -> ...
+                printf("%d\n", _event.key.keysym.sym);
+                switch (_event.key.keysym.sym)
+                {
+                    case SDLK_KP_ENTER:
+                        awaitInput = false;
+                        break;
+                    case SDLK_RETURN:
+                        awaitInput = false;
+                        break;
+                    case SDLK_BACKSPACE:
+                        *cost = trunc(*cost / 10);
+                        break;
+
+                    case SDLK_0:
+                        *cost *= 10;
+                        break;
+                    case SDLK_1:
+                        *cost = *cost * 10 + 1;
+                        break;
+                    case SDLK_2:
+                        *cost = *cost * 10 + 2;
+                        break;
+                    case SDLK_3:
+                        *cost = *cost * 10 + 3;
+                        break;
+                    case SDLK_4:
+                        *cost = *cost * 10 + 4;
+                        break;
+                    case SDLK_5:
+                        *cost = *cost * 10 + 5;
+                        break;
+                    case SDLK_6:
+                        *cost = *cost * 10 + 6;
+                        break;
+                    case SDLK_7:
+                        *cost = *cost * 10 + 7;
+                        break;
+                    case SDLK_8:
+                        *cost = *cost * 10 + 8;
+                        break;
+                    case SDLK_9:
+                        *cost = *cost * 10 + 9;
+                        break;
+
+                    default:
+                        break;
+                }
+                break;
+            default:
+                SDLGraphic_ConnectNode(renderer, _p_node1, _p_node2, *cost, true, id1, id2);
+                SDL_RenderPresent(renderer);
+                break;
+            }
+        }
+    }
+}
+
+
+void addCity(SDL_Renderer *renderer, SDL_Pos _p, SDL_Event _event)
 {
     tsp.cityAmount++;
     int currentCity_temp = tsp.cityAmount - 1;
@@ -105,11 +182,11 @@ void addCity(SDL_Renderer *renderer, SDL_Pos _p)
     {
         int costAB, costBA;
 
-        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", tsp.cityAmount, i+1);
-        scanf("%d", &costAB);
+        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", tsp.cityAmount, i+1);
+        keyInputWait(renderer, _event, _p, tsp.cities[i].position, &costAB, tsp.cityAmount - 1, i);
 
-        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: ", i + 1, tsp.cityAmount);
-        scanf("%d", &costBA);
+        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", i + 1, tsp.cityAmount);
+        keyInputWait(renderer, _event, tsp.cities[i].position, _p, &costBA, i, tsp.cityAmount - 1);
 
         tsp.cities[currentCity_temp].Cost_To_City[i] = costAB;
         tsp.cities[i].Cost_To_City[currentCity_temp] = costBA;
@@ -390,9 +467,9 @@ int main(int argc, char *argv[]) {
     SDL_ShowWindow(window);
 
 
-    const HuyN_SDL_Button buttons[4] = {{
-            .x = 100,
-            .y = 20,
+    const HuyN_SDL_Button buttons[5] = {{
+            .x = 20,
+            .y = 80,
             .w = 200,
             .h = 40,
             .text = "MO FILE DU LIEU",
@@ -400,8 +477,8 @@ int main(int argc, char *argv[]) {
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
         },  // OPEN FILE
         {
-            .x = 555,
-            .y = 20,
+            .x = 20,
+            .y = 140,
             .w = 150,
             .h = 40,
             .text = "NHANH CAN",
@@ -409,8 +486,8 @@ int main(int argc, char *argv[]) {
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
         },   // NHANH CAN
         {
-            .x = 960,
-            .y = 20,
+            .x = 20,
+            .y = 200,
             .w = 220,
             .h = 40,
             .text = "QUY HOACH DONG",
@@ -418,7 +495,7 @@ int main(int argc, char *argv[]) {
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
         },   // QUY HOACH DONG
         {
-            .x = 1020,
+            .x = 20,
             .y = 660,
             .w = 160,
             .h = 40,
@@ -426,8 +503,18 @@ int main(int argc, char *argv[]) {
             .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
             .fgColor = {0x00, 0x00, 0x00, 0xFF}
         },   // QUY HOACH DONG
+        {
+            .x = 20,
+            .y = 20,
+            .w = 100,
+            .h = 40,
+            .text = "RETURN",
+            .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
+            .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        },
     };
 
+    int buttonsMenuId[4] = {1, 1, 1, 1};
 
     // info();
     // laydulieu();
@@ -480,7 +567,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    addCity(renderer, MousePos);
+                    addCity(renderer, MousePos, event);
 
                     break;
                 case SDL_MOUSEMOTION:
@@ -525,12 +612,13 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i + 1, false);
 
         // SAVE TO FILE CHECKBOX
-        SDL_Rect rect = {1140, 663, 30, 30};
+        SDL_Rect rect = {140, 663, 30, 30};
         SDL_SetRenderDrawColor(renderer, 0x50, 0x50, 0x50, 0xFF);
         SDL_RenderDrawRect(renderer, &rect);
         SDL_SetRenderDrawColor(renderer, 0xA0, 0xA0, 0xA0, 0xFF);
         SDL_RenderFillRect(renderer, &rect);
         if (isSaveToFile) SDLGraphic_RenderDrawTick(renderer, rect.x, rect.y);
+        
 
         SDL_RenderPresent(renderer);
 
