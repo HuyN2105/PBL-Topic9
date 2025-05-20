@@ -91,10 +91,10 @@ HuyN_SDL_Button buttons[6] = {{
         .fgColor = {0x00, 0x00, 0x00, 0xFF}
     },   // QUY HOACH DONG
     {
-        .x = 200,
-        .y = 660,
-        .w = 90,
-        .h = 40,
+        .x = 190,
+        .y = 680,
+        .w = 55,
+        .h = 20,
         .text = "CREDIT",
         .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
         .fgColor = {0x00, 0x00, 0x00, 0xFF}
@@ -160,6 +160,10 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
     }
 
     if (currentPageId == 1){
+
+        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderDrawLine(renderer, 260, 0, 260, 720);
+
         for (int i = 0; i < tsp.cityAmount; i++)
         {
             const city city_i = tsp.cities[i];

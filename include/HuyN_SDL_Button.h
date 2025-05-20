@@ -48,7 +48,7 @@ void SDLButton_draw(SDL_Renderer *renderer, const HuyN_SDL_Button _button)
     SDL_RenderFillRect(renderer, &rect);
     // text
     SDL_SetRenderDrawColor(renderer, _button.fgColor.r, _button.fgColor.g, _button.fgColor.b, _button.fgColor.a);
-    SDL_Texture *textTexture = getTextTexture(renderer, _button.text, 25, _button.fgColor);
+    SDL_Texture *textTexture = getTextTexture(renderer, _button.text, (_button.text == "CREDIT" ? 15 : 25), _button.fgColor);
     int textRectW = rect.w - 6, textRectH = rect.h - 6;
     SDL_QueryTexture(textTexture, NULL, NULL, &textRectW, &textRectH);
     SDL_Rect textRect = {rect.x + 3, rect.y + 3, textRectW, textRectH};
