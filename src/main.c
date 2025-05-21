@@ -2,34 +2,26 @@
 #include <string.h>
 #include <limits.h>
 #include <windows.h>
-#include <conio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h> // position randomizer
+#include <time.h>
 
 #include "HuyN_PBL_Graphic.h"
 #include "HuyN_SDL_Button.h"
 #include "SDL.h"
 #include "SDL_ttf.h"
 
-
 // ********************************************** VARIABLES & STRUCTS ********************************************** //
 
-
-
 #define MAX 20 // số lượng thành phố tối đa
-
 
 bool isRunning = true;
 bool isSaveToFile = false;
 
 typedef struct {
-    int id;
     bool visited;
     int Cost_To_City[MAX];
-
     SDL_Pos position;
-
 } city;
 
 typedef struct {
@@ -47,14 +39,12 @@ typedef struct {
 } Answer;
 
 TSP tsp;
-
 Answer answer;
-
 
 int currentPageId = 1;
 
-
-HuyN_SDL_Button buttons[6] = {{
+HuyN_SDL_Button buttons[6] = {
+    {
         .x = 20,
         .y = 20,
         .w = 220,
@@ -89,7 +79,7 @@ HuyN_SDL_Button buttons[6] = {{
         .text = "LUU FILE",
         .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
         .fgColor = {0x00, 0x00, 0x00, 0xFF}
-    },   // QUY HOACH DONG
+    },   // LUU FILE
     {
         .x = 190,
         .y = 680,
@@ -112,46 +102,13 @@ HuyN_SDL_Button buttons[6] = {{
 
 int buttonsMenuId[6] = {1, 1, 1, 1, 1, 2};
 
-
-// dai dai
-void setcolor(int background_color, int text_color) {
-    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    int color_code = background_color * 16 + text_color;
-    SetConsoleTextAttribute(hStdout, color_code);
-}
-void info() {
-    setcolor(0, 15);
-    printf("\n      %c", 218);
-    for (int i = 0; i < 86; i++) printf("%c", 196);
-    printf("%c\n", 191);
-
-    printf("      %c%87c\n", 179, 179);
-    printf("      %c                         PBL1: DO AN LAP TRINH TINH TOAN                              %c\n", 179, 179);
-    printf("      %c                          DE TAI: BAI TOAN NGUOI DU LICH                              %c\n", 179, 179);
-    printf("      %c%87c\n", 179, 179);
-    printf("      %c     SINH VIEN THUC HIEN                   |      GIANG VIEN HUONG DAN                %c\n", 179, 179);
-    printf("      %c    - Nguyen Thanh Huy                     |     - Nguyen Van Hieu                    %c\n", 179, 179);
-    printf("      %c    - Nguyen Dang Le Hoang                 |                                          %c\n", 179, 179);
-    printf("      %c%87c\n", 179, 179);
-    printf("      %c", 192);
-    for (int i = 0; i < 86; i++) printf("%c", 196);
-    printf("%c\n", 217);
-    setcolor(0, 15);
-}
-
-
-
 // ********************************************** RENDER PRESET ********************************************** //
-
-
 
 void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInput)
 {
     SDL_RenderClear(renderer);
-
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer);
-
 
     for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
     {
@@ -160,7 +117,6 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
     }
 
     if (currentPageId == 1){
-
         SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderDrawLine(renderer, 260, 0, 260, 720);
 
@@ -169,7 +125,7 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
             const city city_i = tsp.cities[i];
             for (int j = 0; j < tsp.cityAmount; j++)
             {
-                if (i == j) continue;
+                if (i == j ) continue;
                 SDLGraphic_ConnectNode(renderer, city_i.position, tsp.cities[j].position, city_i.Cost_To_City[j], false, i, j);
             }
         }
@@ -192,7 +148,6 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
         SDL_Rect SV_THUC_HIEN_rect = { containerRect.x + 95, PBL_PROJECT_NAME_rect.y + PBL_PROJECT_NAME_rect.h + 50, 300, 35};
         SDLGraphic_RenderText(renderer, "SINH VIEN THUC HIEN", 30, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_THUC_HIEN_rect);
 
-
         SDL_Rect SV_1_rect = { containerRect.x + 42, SV_THUC_HIEN_rect.y + SV_THUC_HIEN_rect.h + 83, 355, 30};
         SDLGraphic_RenderText(renderer, "Nguyen Thanh Huy", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_1_rect);
         SDL_Rect SV_1_id_rect = { 483, SV_THUC_HIEN_rect.y + SV_THUC_HIEN_rect.h + 83, 125, 30};
@@ -203,22 +158,15 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
         SDL_Rect SV_2_id_rect = { SV_2_rect.x + SV_2_rect.w + 31, SV_1_rect.y + SV_1_rect.h + 83, 125, 30};
         SDLGraphic_RenderText(renderer, "102240308", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_2_id_rect);
 
-
         SDL_Rect GV_HUONG_DAN_rect = { containerRect.x + containerRect.w - 75 - 340, PBL_PROJECT_NAME_rect.y + PBL_PROJECT_NAME_rect.h + 50, 340, 35};
         SDLGraphic_RenderText(renderer, "GIANG VIEN HUONG DAN", 30, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, GV_HUONG_DAN_rect);
 
         SDL_Rect GV_rect = { containerRect.x + containerRect.w - 127 - 235, GV_HUONG_DAN_rect.y + GV_HUONG_DAN_rect.h + 83, 235, 30};
         SDLGraphic_RenderText(renderer, "Ts. Nguyen Van Hieu", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, GV_rect);
 
-
         SDL_Rect LopSH_rect = {containerRect.x + (containerRect.w - 120) / 2, containerRect.y + containerRect.h - 40, 120, 30};
         SDLGraphic_RenderText(renderer, "24T_Nhat1", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, LopSH_rect);
-
-
     }
-
-
-    // SAVE TO FILE CHECKBOX
 
     if (currentPageId == 1){
         const SDL_Rect rect = {140, 663, 30, 30};
@@ -232,49 +180,20 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
     if (!isAwaitingInput) SDL_RenderPresent(renderer);
 }
 
-
-
 // ********************************************** DATA INPUT ********************************************** //
-
-
-void nhap(int t) {
-    if (t == 2) printf("Nhap so thanh pho: ");
-    scanf("%d", &tsp.cityAmount);
-    if (t == 2) printf("Nhap ma tran chi phi:\n");
-    for (int i = 0; i < tsp.cityAmount; i++){
-        for (int j = 0; j < tsp.cityAmount; j++)
-            scanf("%d", &tsp.cities[i].Cost_To_City[j]);
-        tsp.cities[i].visited = false;
-    }
-    printf("DU LIEU:\n");
-    if (t == 1) {
-        printf("%d\n", tsp.cityAmount);
-        for (int i = 0; i < tsp.cityAmount; i++) {
-            for (int j = 0; j < tsp.cityAmount; j++) {
-                printf("%d ", tsp.cities[i].Cost_To_City[j]);
-            }
-            printf("\n");
-        }
-    }
-}
-
 
 int numInputProcess(const int keysym)
 {
-    // 0 -> 9 : 48 -> 57
     if (keysym >= 48 && keysym <= 57)
     {
         return keysym - 48;
     }
-    // numpad: 1->9 : 1073741913 -> 1073741921 | 0 : 1073741922
     if (keysym >= 1073741913 && keysym <= 1073741922) return (keysym == 1073741922 ? 0 : keysym - 1073741912);
-    // not number input
     return -1;
 }
 
 void keyInputWait(SDL_Renderer *renderer, SDL_Event _event, const SDL_Pos _p_node1, const SDL_Pos _p_node2, int *cost, const int id1, const int id2)
 {
-
     SDLGraphic_ConnectNode(renderer, _p_node1, _p_node2, -1, true, id1, id2);
     SDL_RenderPresent(renderer);
 
@@ -316,7 +235,6 @@ void keyInputWait(SDL_Renderer *renderer, SDL_Event _event, const SDL_Pos _p_nod
     }
 }
 
-
 void addCity(SDL_Renderer *renderer, SDL_Pos _p, SDL_Event _event)
 {
     tsp.cityAmount++;
@@ -326,39 +244,15 @@ void addCity(SDL_Renderer *renderer, SDL_Pos _p, SDL_Event _event)
     for (int i = 0; i < currentCity_temp; i++)
     {
         int costAB, costBA;
-
         printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", tsp.cityAmount, i+1);
         keyInputWait(renderer, _event, _p, tsp.cities[i].position, &costAB, tsp.cityAmount - 1, i);
-
         tsp.cities[currentCity_temp].Cost_To_City[i] = costAB;
 
         printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", i + 1, tsp.cityAmount);
         keyInputWait(renderer, _event, tsp.cities[i].position, _p, &costBA, i, tsp.cityAmount - 1);
-
         tsp.cities[i].Cost_To_City[currentCity_temp] = costBA;
         printf("\n");
     }
-}
-
-
-// Chọn cách nhập dữ liệu
-void laydulieu() {
-    int a;
-    printf("HAY CHON CACH NHAP DU LIEU:\n");
-    printf("  1. Lay du lieu tu file.        \n");
-    printf("  2. Nhap du lieu tu ban phim.   \n");
-    printf("Lua chon cua ban:");
-    scanf("%d", &a);
-
-    if (a == 1) {
-        freopen("data.txt", "r", stdin);
-    }
-    else if (a != 2) {
-        printf("Ban da nhap sai, hay nhap lai.\n");
-        return laydulieu();
-    }
-    nhap(a);
-    freopen("CON", "r", stdin);
 }
 
 char* openFileDialog() {
@@ -377,20 +271,17 @@ char* openFileDialog() {
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (GetOpenFileName(&ofn) == TRUE) {
-        return _strdup(ofn.lpstrFile); // Return a duplicate of the file path
+        return _strdup(ofn.lpstrFile);
     }
-    return NULL; // Return NULL if canceled
+    return NULL;
 }
-
 
 void get_data_from_file()
 {
     const char *filePath = openFileDialog();
-
     if (filePath == NULL) return;
 
     freopen(filePath, "r", stdin);
-
     int cityAmount;
     int costMatrix[MAX][MAX];
 
@@ -401,7 +292,6 @@ void get_data_from_file()
     tsp.cityAmount = cityAmount;
     printf("Number of cities: %d\n", cityAmount);
 
-    // Read the cost matrix
     for (int i = 0; i < cityAmount; i++) {
         for (int j = 0; j < cityAmount; j++) {
             if (scanf("%d", &costMatrix[i][j]) != 1) {
@@ -412,22 +302,17 @@ void get_data_from_file()
         }
     }
 
-    // Seed the random number generator
     srand((unsigned int)time(NULL));
-
-    // Generate non-overlapping random positions
-    const int minDistance = 40; // Minimum distance between nodes
+    const int minDistance = 40;
     const int windowWidth = 1280;
     const int windowHeight = 720;
-    const int margin = 50; // Margin from window edges
+    const int margin = 50;
     for (int i = 0; i < cityAmount; i++) {
         bool overlap;
         do {
             overlap = false;
             tsp.cities[i].position.x = margin + (rand() % (windowWidth - 2 * margin));
             tsp.cities[i].position.y = margin + (rand() % (windowHeight - 2 * margin));
-
-            // Check overlap with all previous cities
             for (int j = 0; j < i; j++) {
                 int dx = tsp.cities[i].position.x - tsp.cities[j].position.x;
                 int dy = tsp.cities[i].position.y - tsp.cities[j].position.y;
@@ -440,15 +325,11 @@ void get_data_from_file()
         } while (overlap);
     }
 
-    free((void*)filePath); // Free the duplicated string
-    freopen("CON", "r", stdin); // SWITCH BACK TO CONSOLE
+    free((void*)filePath);
+    freopen("CON", "r", stdin);
 }
 
-
-
 // ********************************************** ALGORITHMs ********************************************** //
-
-
 
 void inKetQua(int cost, int route[]) {
     printf("\n");
@@ -469,10 +350,8 @@ void inKetQua(int cost, int route[]) {
         freopen("CON", "w", stdout);
         printf("\n###### DA LUU KET QUA VAO FILE RESULT.TXT ######\n");
     }
-
 }
 
-// Tìm chi phí tối thiểu giữa các thành phố
 int min_out_cost() {
     int min = INT_MAX;
     for (int i = 0; i < tsp.cityAmount; i++) {
@@ -485,7 +364,6 @@ int min_out_cost() {
     return min;
 }
 
-// Nhánh cận
 void Try(int row) {
     for (int col = 1; col < tsp.cityAmount; col++) {
         if (!tsp.cities[col].visited) {
@@ -519,8 +397,6 @@ void branch_and_bound() {
     inKetQua(answer.ans, answer.bestPath);
 }
 
-
-// Quy hoạch động
 int tsp_dp(int mask, int pos) {
     if (mask == (1 << tsp.cityAmount) - 1)
         return tsp.cities[pos].Cost_To_City[0];
@@ -562,40 +438,9 @@ void dynamic_programming() {
     inKetQua(total_cost, tsp.path);
 }
 
-void chayThuatToan() {
-    int b;
-    printf("CHON PHUONG PHAP:\n");
-    printf("1. Nhanh can\n");
-    printf("2. Quy hoach dong\n");
-    printf("Lua chon cua ban: ");
-    scanf("%d", &b);
-    if (b == 1) {
-        printf("Phuong phap nhanh can:\n");
-        const double beforeAlgoTick = SDL_GetTicks();
-        branch_and_bound();
-        const double afterAlgoTick = SDL_GetTicks();
-        printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", (afterAlgoTick - beforeAlgoTick) / 1000.0);
-    }
-    else if (b == 2) {
-        printf("Phuong phap quy hoach dong:\n");
-        const double beforeAlgoTick = SDL_GetTicks();
-        dynamic_programming();
-        const double afterAlgoTick = SDL_GetTicks();
-        printf("QUY HOACH DONG HOAN THANH TINH TOAN TRONG: %.3lfs\n", (afterAlgoTick - beforeAlgoTick) / 1000.0);
-    }
-    else {printf("Lua chon khong hop le!\n");
-        return chayThuatToan();
-    }
-}
-
-
-
 // ********************************************** MAIN ********************************************** //
 
 int main(int argc, char *argv[]) {
-
-    info();
-
     tsp.cityAmount = 0;
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0){
@@ -617,10 +462,6 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_ShowWindow(window);
-
-    // info();
-    // laydulieu();
-    // chayThuatToan();
 
     isRunning = true;
     SDL_Event event;
@@ -646,6 +487,7 @@ int main(int argc, char *argv[]) {
                         }
                         if (SDLButton_isContain(MousePos, buttons[1]) && buttonsMenuId[1] == currentPageId)
                         {
+                            printf("THUC HIEN THUAT TOAN NHANH CAN:");
                             const double currentTick = SDL_GetTicks();
                             branch_and_bound();
                             const double afterAlgoTick = SDL_GetTicks();
@@ -654,10 +496,11 @@ int main(int argc, char *argv[]) {
                         }
                         if (SDLButton_isContain(MousePos, buttons[2]) && buttonsMenuId[2] == currentPageId)
                         {
+                            printf("THUC HIEN THUAT TOAN QUY HOACH DONG: ");
                             const double currentTick = SDL_GetTicks();
                             dynamic_programming();
                             const double afterAlgoTick = SDL_GetTicks();
-                            printf("NHANH CAN HOAN THANH TINH TOAN TRONG: %.3lfs\n", abs(currentTick - afterAlgoTick) / 1000.0);
+                            printf("QUY HOACH DONG HOAN THANH TINH TOAN TRONG: %.3lfs\n", abs(currentTick - afterAlgoTick) / 1000.0);
                             break;
                         }
                         if (SDLButton_isContain(MousePos, buttons[3]) && buttonsMenuId[3] == currentPageId)
@@ -665,7 +508,6 @@ int main(int argc, char *argv[]) {
                             isSaveToFile = !isSaveToFile;
                             break;
                         }
-
                         if (SDLButton_isContain(MousePos, buttons[4]) && buttonsMenuId[4] == currentPageId)
                         {
                             currentPageId = 2;
@@ -676,13 +518,8 @@ int main(int argc, char *argv[]) {
                             currentPageId = 1;
                             break;
                         }
-
                         if (currentPageId == 1) addCity(renderer, MousePos, event);
-
                         break;
-                    } if (event.button.button == SDL_BUTTON_RIGHT)
-                    {
-                        // TODO: right click delete node
                     }
                 case SDL_MOUSEMOTION:
                     SDL_GetMouseState(&MousePos.x, &MousePos.y);
@@ -704,13 +541,12 @@ int main(int argc, char *argv[]) {
                     break;
             }
         }
-
         SDLGraphic_ReRenderPreset(renderer, false);
-
     }
 
     SDL_Quit();
     TTF_Quit();
-
     return 0;
 }
+
+
