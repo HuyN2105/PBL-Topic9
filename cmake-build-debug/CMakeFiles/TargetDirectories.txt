@@ -1,3 +1,0 @@
-C:/Users/Lenovo/CLionProjects/PBL-Topic9/cmake-build-debug/CMakeFiles/PBL.dir
-C:/Users/Lenovo/CLionProjects/PBL-Topic9/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Lenovo/CLionProjects/PBL-Topic9/cmake-build-debug/CMakeFiles/rebuild_cache.dir
