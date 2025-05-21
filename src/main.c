@@ -403,16 +403,18 @@ void get_data_from_file()
     }
 
     srand((unsigned int)time(NULL));
+
+    const int minX = 260;
+    const int maxX = 1280;
+    const int minY = 0;
+    const int maxY = 620;
     const int minDistance = 40;
-    const int windowWidth = 1280;
-    const int windowHeight = 720;
-    const int margin = 50;
     for (int i = 0; i < cityAmount; i++) {
         bool overlap;
         do {
             overlap = false;
-            tsp.cities[i].position.x = margin + (rand() % (windowWidth - 2 * margin));
-            tsp.cities[i].position.y = margin + (rand() % (windowHeight - 2 * margin));
+            tsp.cities[i].position.x = minX + (rand() % (maxX - minX));
+            tsp.cities[i].position.y = minY + (rand() % (maxY - minY));
             for (int j = 0; j < i; j++) {
                 int dx = tsp.cities[i].position.x - tsp.cities[j].position.x;
                 int dy = tsp.cities[i].position.y - tsp.cities[j].position.y;
@@ -424,6 +426,7 @@ void get_data_from_file()
             }
         } while (overlap);
     }
+
 
     free((void*)filePath);
     freopen("CON", "r", stdin);
@@ -535,6 +538,7 @@ void dynamic_programming() {
     int total_cost = tsp_dp(1, 0);
     tsp.path[0] = 0;
     build_path_dp(1, 0, 1);
+    answer.ans = total_cost;
     inKetQua(total_cost, tsp.path);
 }
 
