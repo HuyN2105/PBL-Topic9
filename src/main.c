@@ -169,7 +169,7 @@ void show_dp_result(SDL_Renderer *renderer)
     for (int i = 0; i < tsp.cityAmount; i++)
     {
         strcat(path_result, "Thanh pho ");
-        sprintf(s_t_n, "%d", answer.bestPath[i] + 1);
+        sprintf(s_t_n, "%d", tsp.path[i] + 1);
         strcat(path_result, s_t_n);
         strcat(path_result, " -> ");
     }
