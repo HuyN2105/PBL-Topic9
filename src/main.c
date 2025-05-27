@@ -2,6 +2,8 @@
 #include <string.h>
 #include <limits.h>
 #include <windows.h>
+#include <shlobj.h>
+#include <commdlg.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
@@ -17,6 +19,8 @@
 
 bool isRunning = true;
 bool isSaveToFile = false;
+
+char *resultPath;
 
 typedef struct {
     bool visited;
@@ -46,9 +50,13 @@ TSP tsp;
 
 Answer answer;
 
-HuyN_SDL_Button validZone = {260, 0, 1020, 580, "", (SDL_Color){0x00, 0x00, 0x00, 0x00}, (SDL_Color){0x00, 0x00, 0x00, 0x00}}; // valid zone for node to be added
+HuyN_SDL_Button validZone = {260, 0, 1020, 620, "", (SDL_Color){0x00, 0x00, 0x00, 0x00}, (SDL_Color){0x00, 0x00, 0x00, 0x00}}; // valid zone for node to be added
 
 int currentPageId = 1;
+
+
+const SDL_Color originButtonColor = {0x14, 0x1E, 0x61, 0xFF},
+ textColor = {0x0F, 0x04, 0x4C, 0xFF};
 
 HuyN_SDL_Button buttons[6] = {
     {
@@ -57,8 +65,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 220,
         .h = 40,
         .text = "MO FILE DU LIEU",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },  // OPEN FILE
     {
         .x = 20,
@@ -66,8 +74,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 220,
         .h = 40,
         .text = "NHANH CAN",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },   // NHANH CAN
     {
         .x = 20,
@@ -75,8 +83,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 220,
         .h = 40,
         .text = "QUY HOACH DONG",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },   // QUY HOACH DONG
     {
         .x = 20,
@@ -84,8 +92,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 160,
         .h = 40,
         .text = "LUU FILE",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },   // LUU FILE
     {
         .x = 190,
@@ -93,8 +101,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 55,
         .h = 20,
         .text = "CREDIT",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },
     {
         .x = 20,
@@ -102,8 +110,8 @@ HuyN_SDL_Button buttons[6] = {
         .w = 100,
         .h = 40,
         .text = "RETURN",
-        .bgColor = {0xFF, 0xFF, 0xFF, 0xFF},
-        .fgColor = {0x00, 0x00, 0x00, 0xFF}
+        .bgColor = {0x14, 0x1E, 0x61, 0xFF},
+        .fgColor = {0xEE, 0xEE, 0xEE, 0xFF}
     },
 };
 
@@ -115,17 +123,17 @@ int buttonsMenuId[6] = {1, 1, 1, 1, 1, 2};
 
 void show_bab_result(SDL_Renderer *renderer)
 {
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0x35, 0x42, 0x59, 0xFF);
 
     SDL_Rect Title_Rect = {20, 630, 300, 20};
-    SDLGraphic_RenderText(renderer, "KET QUA:", 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Title_Rect);
+    SDLGraphic_RenderText(renderer, "KET QUA NHANH CAN:", 15, textColor, Title_Rect);
 
     SDL_Rect Result_Rect = {20, 650, 300, 20};
     char result[100] = "Chi phi nho nhat la: "; // Use a writable buffer
     char s_t_n[20];
     sprintf(s_t_n, "%d", answer.ans);
     strcat(result, s_t_n); // Concatenate safely
-    SDLGraphic_RenderText(renderer, result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Result_Rect);
+    SDLGraphic_RenderText(renderer, result, 15, textColor, Result_Rect);
 
     SDL_Rect Path_Rect = {20, 670, 300, 20};
 
@@ -138,7 +146,7 @@ void show_bab_result(SDL_Renderer *renderer)
         strcat(path_result, " -> ");
     }
     strcat(path_result, "Thanh pho 1");
-    SDLGraphic_RenderText(renderer, path_result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Path_Rect);
+    SDLGraphic_RenderText(renderer, path_result, 15, textColor, Path_Rect);
 
     SDL_Rect RunTime_Rect = {20, 690, 300, 20};
 
@@ -146,24 +154,24 @@ void show_bab_result(SDL_Renderer *renderer)
     sprintf(s_t_n, "%.3f", tsp.bab_runtime);
     strcat(runtime_result, s_t_n);
     strcat(runtime_result, "s");
-    SDLGraphic_RenderText(renderer, runtime_result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, RunTime_Rect);
+    SDLGraphic_RenderText(renderer, runtime_result, 15, textColor, RunTime_Rect);
 }
 
 void show_dp_result(SDL_Renderer *renderer)
 {
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0x35, 0x42, 0x59, 0xFF);
 
-    SDL_Rect Title_Rect = {20, 630, 300, 20};
-    SDLGraphic_RenderText(renderer, "KET QUA", 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Title_Rect);
+    SDL_Rect Title_Rect = {680, 630, 300, 20};
+    SDLGraphic_RenderText(renderer, "KET QUA QUY HOACH DONG:", 15, textColor, Title_Rect);
 
-    SDL_Rect Result_Rect = {20, 650, 300, 20};
+    SDL_Rect Result_Rect = {680, 650, 300, 20};
     char result[100] = "Chi phi nho nhat la: "; // Use a writable buffer
     char s_t_n[20];
     sprintf(s_t_n, "%d", answer.ans);
     strcat(result, s_t_n); // Concatenate safely
-    SDLGraphic_RenderText(renderer, result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Result_Rect);
+    SDLGraphic_RenderText(renderer, result, 15, textColor, Result_Rect);
 
-    SDL_Rect Path_Rect = {20, 670, 300, 20};
+    SDL_Rect Path_Rect = {680, 670, 300, 20};
 
     char path_result[300] = "Duong di: "; // Use a writable buffer
     for (int i = 0; i < tsp.cityAmount; i++)
@@ -174,7 +182,7 @@ void show_dp_result(SDL_Renderer *renderer)
         strcat(path_result, " -> ");
     }
     strcat(path_result, "Thanh pho 1");
-    SDLGraphic_RenderText(renderer, path_result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, Path_Rect);
+    SDLGraphic_RenderText(renderer, path_result, 15, textColor, Path_Rect);
 
     SDL_Rect RunTime_Rect = {680, 690, 300, 20};
 
@@ -182,7 +190,7 @@ void show_dp_result(SDL_Renderer *renderer)
     sprintf(s_t_n, "%.3f", tsp.dp_runtime);
     strcat(runtime_result, s_t_n);
     strcat(runtime_result, "s");
-    SDLGraphic_RenderText(renderer, runtime_result, 15, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, RunTime_Rect);
+    SDLGraphic_RenderText(renderer, runtime_result, 15, textColor, RunTime_Rect);
 }
 
 
@@ -190,18 +198,59 @@ void show_dp_result(SDL_Renderer *renderer)
 void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInput)
 {
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    if (currentPageId == 1) SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xEE, 0xFF);
+    else if (currentPageId == 2) SDL_SetRenderDrawColor(renderer, 0x78, 0x7A, 0x91, 0xFF);
     SDL_RenderClear(renderer);
+
+    if (currentPageId == 1)
+    {
+        SDL_SetRenderDrawColor(renderer, 0xB3, 0xB4, 0xBF, 0xFF);
+        SDL_Rect tempR = {0, 0, validZone.x, 720};
+        SDL_RenderFillRect(renderer, &tempR);
+        tempR = (SDL_Rect){0, validZone.h, 1280, 720 - validZone.h};
+        SDL_RenderFillRect(renderer, &tempR);
+    }
+
+    static int rainbowOffset = 0;
+    rainbowOffset = (rainbowOffset + 1) % 360;
 
     for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
     {
         if (buttonsMenuId[i] != currentPageId) continue;
+
+        SDL_Pos mousePos;
+        SDL_GetMouseState(&mousePos.x, &mousePos.y);
+
+        if (SDLButton_isContain(mousePos, buttons[i])) {
+            SDL_Rect hoverRect = {
+                buttons[i].x - 3,
+                buttons[i].y - 3,
+                buttons[i].w + 6,
+                buttons[i].h + 6
+            };
+            renderRainbowHover(renderer, hoverRect, rainbowOffset);
+        }
+
         SDLButton_draw(renderer, buttons[i]);
     }
 
+
     if (currentPageId == 1){
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderDrawLine(renderer, 260, 0, 260, 620);
+
+        SDL_SetRenderDrawColor(renderer, 0x78, 0x7A, 0x91, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x, 0, validZone.x, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0x8B, 0x8D, 0xA0, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 1, 0, validZone.x + 1, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0x9F, 0xA0, 0xB0, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 2, 0, validZone.x + 2, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0xB3, 0xB4, 0xBF, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 3, 0, validZone.x + 3, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0xC6, 0xC7, 0xCF, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 4, 0, validZone.x + 4, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0xDA, 0xDA, 0xDE, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 5, 0, validZone.x + 5, validZone.h);
+
+
 
         for (int i = 0; i < tsp.cityAmount; i++)
         {
@@ -213,7 +262,7 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
             }
         }
 
-        for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i + 1, false);
+        for (int i = 0; i < tsp.cityAmount; i++) SDLGraphic_DrawNode(renderer, tsp.cities[i].position, i + 1, false, (SDL_Rect){validZone.x, validZone.y, validZone.w, validZone.h});
 
 
         const SDL_Rect rect = {buttons[3].x + 120, buttons[3].y + 5, 30, 30};
@@ -224,8 +273,18 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
         if (isSaveToFile) SDLGraphic_RenderDrawTick(renderer, rect.x, rect.y);
 
 
-        SDL_RenderDrawLine(renderer, 0, 620, 1280, 620);
-
+        SDL_SetRenderDrawColor(renderer, 0x78, 0x7A, 0x91, 0xFF);
+        SDL_RenderDrawLine(renderer, 0, validZone.h, 1280, validZone.h);
+        SDL_SetRenderDrawColor(renderer, 0x8B, 0x8D, 0xA0, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 1, validZone.h - 1, 1280, validZone.h - 1);
+        SDL_SetRenderDrawColor(renderer, 0x9F, 0xA0, 0xB0, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 2, validZone.h - 2, 1280, validZone.h - 2);
+        SDL_SetRenderDrawColor(renderer, 0xB3, 0xB4, 0xBF, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 3, validZone.h - 3, 1280, validZone.h - 3);
+        SDL_SetRenderDrawColor(renderer, 0xC6, 0xC7, 0xCF, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 4, validZone.h - 4, 1280, validZone.h - 4);
+        SDL_SetRenderDrawColor(renderer, 0xDA, 0xDA, 0xDE, 0xFF);
+        SDL_RenderDrawLine(renderer, validZone.x + 5, validZone.h - 5, 1280, validZone.h - 5);
 
         if (tsp.bab_runtime >= 0)
         {
@@ -240,39 +299,42 @@ void SDLGraphic_ReRenderPreset(SDL_Renderer *renderer, const bool isAwaitingInpu
 
     } else if (currentPageId == 2)
     {
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_Rect containerRainbowRect = { 150 - 3, 50 - 3, 980 + 6, 620 + 6};
+        renderRainbowHover(renderer, containerRainbowRect, rainbowOffset);
+        SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xEE, 0xFF);
         SDL_Rect containerRect = { 150, 50, 980, 620};
-        SDL_RenderDrawRect(renderer, &containerRect);
+        SDL_RenderFillRect(renderer, &containerRect);
 
+        SDL_SetRenderDrawColor(renderer, 0x14, 0x1E, 0x61, 0xFF);
         SDL_RenderDrawLine(renderer, containerRect.x + containerRect.w / 2, 210, containerRect.x + containerRect.w / 2, containerRect.y + containerRect.h - 50);
 
         SDL_Rect PBL_TITLE_rect = { 307, containerRect.y + 50, 665, 50};
-        SDLGraphic_RenderText(renderer, "PBL1: DO AN LAP TRINH TINH TOAN", 40, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, PBL_TITLE_rect);
+        SDLGraphic_RenderText(renderer, "PBL1: DO AN LAP TRINH TINH TOAN", 40, textColor, PBL_TITLE_rect);
 
         SDL_Rect PBL_PROJECT_NAME_rect = { 370, PBL_TITLE_rect.y + PBL_TITLE_rect.h, 540, 40};
-        SDLGraphic_RenderText(renderer, "DE TAI: BAI TOAN NGUOI DU LICH", 35, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, PBL_PROJECT_NAME_rect);
+        SDLGraphic_RenderText(renderer, "DE TAI: BAI TOAN NGUOI DU LICH", 35, textColor, PBL_PROJECT_NAME_rect);
 
         SDL_Rect SV_THUC_HIEN_rect = { containerRect.x + 95, PBL_PROJECT_NAME_rect.y + PBL_PROJECT_NAME_rect.h + 50, 300, 35};
-        SDLGraphic_RenderText(renderer, "SINH VIEN THUC HIEN", 30, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_THUC_HIEN_rect);
+        SDLGraphic_RenderText(renderer, "SINH VIEN THUC HIEN", 30, textColor, SV_THUC_HIEN_rect);
 
         SDL_Rect SV_1_rect = { containerRect.x + 42, SV_THUC_HIEN_rect.y + SV_THUC_HIEN_rect.h + 83, 355, 30};
-        SDLGraphic_RenderText(renderer, "Nguyen Thanh Huy", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_1_rect);
+        SDLGraphic_RenderText(renderer, "Nguyen Thanh Huy", 25, textColor, SV_1_rect);
         SDL_Rect SV_1_id_rect = { 483, SV_THUC_HIEN_rect.y + SV_THUC_HIEN_rect.h + 83, 125, 30};
-        SDLGraphic_RenderText(renderer, "102240311", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_1_id_rect);
+        SDLGraphic_RenderText(renderer, "102240311", 25, textColor, SV_1_id_rect);
 
         SDL_Rect SV_2_rect = { containerRect.x + 42, SV_1_rect.y + SV_1_rect.h + 83, 260, 30};
-        SDLGraphic_RenderText(renderer, "Nguyen Dang Le Hoang", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_2_rect);
+        SDLGraphic_RenderText(renderer, "Nguyen Dang Le Hoang", 25, textColor, SV_2_rect);
         SDL_Rect SV_2_id_rect = { SV_2_rect.x + SV_2_rect.w + 31, SV_1_rect.y + SV_1_rect.h + 83, 125, 30};
-        SDLGraphic_RenderText(renderer, "102240308", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, SV_2_id_rect);
+        SDLGraphic_RenderText(renderer, "102240308", 25, textColor, SV_2_id_rect);
 
         SDL_Rect GV_HUONG_DAN_rect = { containerRect.x + containerRect.w - 75 - 340, PBL_PROJECT_NAME_rect.y + PBL_PROJECT_NAME_rect.h + 50, 340, 35};
-        SDLGraphic_RenderText(renderer, "GIANG VIEN HUONG DAN", 30, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, GV_HUONG_DAN_rect);
+        SDLGraphic_RenderText(renderer, "GIANG VIEN HUONG DAN", 30, textColor, GV_HUONG_DAN_rect);
 
         SDL_Rect GV_rect = { containerRect.x + containerRect.w - 127 - 235, GV_HUONG_DAN_rect.y + GV_HUONG_DAN_rect.h + 83, 235, 30};
-        SDLGraphic_RenderText(renderer, "Ts. Nguyen Van Hieu", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, GV_rect);
+        SDLGraphic_RenderText(renderer, "Ts. Nguyen Van Hieu", 25, textColor, GV_rect);
 
         SDL_Rect LopSH_rect = {containerRect.x + (containerRect.w - 120) / 2, containerRect.y + containerRect.h - 40, 120, 30};
-        SDLGraphic_RenderText(renderer, "24T_Nhat1", 25, (SDL_Color){0xFF, 0xFF, 0xFF, 0xFF}, LopSH_rect);
+        SDLGraphic_RenderText(renderer, "24T_Nhat1", 25, textColor, LopSH_rect);
     }
 
     if (!isAwaitingInput) SDL_RenderPresent(renderer);
@@ -287,13 +349,17 @@ int numInputProcess(const int keysym)
         return keysym - 48;
     }
     if (keysym >= 1073741913 && keysym <= 1073741922) return (keysym == 1073741922 ? 0 : keysym - 1073741912);
-    return -1;
+    if (keysym == 1073741910 || keysym == 45) return -1;
+    if (keysym == 1073741911 || keysym == 61) return -2;
+    return -3;
 }
 
 void keyInputWait(SDL_Renderer *renderer, SDL_Event _event, const SDL_Pos _p_node1, const SDL_Pos _p_node2, int *cost, const int id1, const int id2)
 {
     SDLGraphic_ConnectNode(renderer, _p_node1, _p_node2, -1, true, id1, id2);
     SDL_RenderPresent(renderer);
+
+    bool isNegative = false;
 
     bool awaitInput = true;
     *cost = 0;
@@ -319,7 +385,18 @@ void keyInputWait(SDL_Renderer *renderer, SDL_Event _event, const SDL_Pos _p_nod
                         *cost = trunc(*cost / 10);
                         break;
                     default:
-                        if (numInputProcess(_event.key.keysym.sym) != -1) *cost = *cost * 10 + numInputProcess(_event.key.keysym.sym);
+                        int keysym = numInputProcess(_event.key.keysym.sym);
+                        if (keysym == -1)
+                        {
+                            isNegative = true;
+                            *cost *= -1;
+                        }
+                        else if (keysym == -2)
+                        {
+                            isNegative = false;
+                            *cost *= -1;
+                        }
+                        else if (keysym != -3) *cost = *cost * 10 + (isNegative ? -1 * keysym : keysym);
                         break;
                 }
                 break;
@@ -338,20 +415,17 @@ void addCity(SDL_Renderer *renderer, SDL_Pos _p, SDL_Event _event)
     tsp.cityAmount++;
     int currentCity_temp = tsp.cityAmount - 1;
     tsp.cities[currentCity_temp].position = _p;
-    SDLGraphic_DrawNode(renderer, _p, tsp.cityAmount, true);
+    SDLGraphic_DrawNode(renderer, _p, tsp.cityAmount, true, (SDL_Rect){validZone.x, validZone.y, validZone.w, validZone.h});
     for (int i = 0; i < currentCity_temp; i++)
     {
         int costAB, costBA;
 
-        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", i + 1, tsp.cityAmount);
         keyInputWait(renderer, _event, tsp.cities[i].position, _p, &costBA, i, tsp.cityAmount - 1);
         tsp.cities[i].Cost_To_City[currentCity_temp] = costBA;
 
-        printf("CHI PHI KHI DI TU THANH PHO %d SANG THANH PHO %d: \n", tsp.cityAmount, i+1);
         keyInputWait(renderer, _event, _p, tsp.cities[i].position, &costAB, tsp.cityAmount - 1, i);
         tsp.cities[currentCity_temp].Cost_To_City[i] = costAB;
 
-        printf("\n");
     }
 }
 
@@ -372,6 +446,26 @@ char* openFileDialog() {
 
     if (GetOpenFileName(&ofn) == TRUE) {
         return _strdup(ofn.lpstrFile);
+    }
+    return NULL;
+}
+
+char* showSaveFileDialog() {
+    char szFile[MAX_PATH] = {0};
+
+    OPENFILENAME ofn = {0};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrDefExt = "txt";  // Default extension
+    ofn.lpstrTitle = "Save your file";
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+
+    if (GetSaveFileName(&ofn)) {
+        return _strdup(ofn.lpstrFile);  // Caller must free
     }
     return NULL;
 }
@@ -445,13 +539,32 @@ void inKetQua(int cost, int route[]) {
 
     if (isSaveToFile)
     {
-        freopen("result.txt", "w", stdout);
-        for (int i = 0; i < tsp.cityAmount; i++)
-        {
-            printf("%d ", route[i] + 1);
+        // Write to the file
+        FILE* file = fopen(resultPath, "w");
+        if (file == NULL) {
+            printf("Failed to create file: %s\n", resultPath);
+            TTF_Quit();
+            SDL_Quit();
+            exit(1);
         }
-        freopen("CON", "w", stdout);
-        printf("\n###### DA LUU KET QUA VAO FILE RESULT.TXT ######\n");
+
+        fprintf(file, "Chi phi nho nhat la: %d\n", cost);
+        fprintf(file, "Duong di: ");
+        for (int i = 0; i < tsp.cityAmount; i++) {
+            fprintf(file, "Thanh Pho %d -> ", route[i] + 1);
+        }
+        fprintf(file, "Thanh Pho %d\n", route[0] + 1);
+
+        fclose(file);
+
+        const char* fileName = strrchr(resultPath, '\\');
+        if (fileName) {
+            fileName++;  // Move past the backslash
+        } else {
+            fileName = resultPath;  // No slash found, use whole string
+        }
+
+        printf("DA LUU KET QUA VAO FILE %s.\n", fileName);
     }
 }
 
@@ -573,6 +686,9 @@ int main(int argc, char *argv[]) {
     SDL_Event event;
     SDL_Pos MousePos = {0, 0};
 
+    SDL_Cursor *handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    SDL_Cursor *arrowCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+
     while (isRunning)
     {
         while (SDL_PollEvent(&event))
@@ -617,6 +733,8 @@ int main(int argc, char *argv[]) {
                         }
                         if (SDLButton_isContain(MousePos, buttons[3]) && buttonsMenuId[3] == currentPageId)
                         {
+                            resultPath = showSaveFileDialog();
+                            if (resultPath == NULL) break;
                             isSaveToFile = !isSaveToFile;
                             break;
                         }
@@ -639,14 +757,11 @@ int main(int argc, char *argv[]) {
                     {
                         if (SDLButton_isContain(MousePos, buttons[i]) && currentPageId == buttonsMenuId[i])
                         {
-                            SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
-                            SDL_SetCursor(cursor);
-                            buttons[i].bgColor = (SDL_Color){ 0x00, 0xFF, 0xFF, 0xFF};
+                            SDL_SetCursor(handCursor);
                             break;
                         }
-                        buttons[i].bgColor = (SDL_Color){ 0xFF, 0xFF, 0xFF, 0xFF};
-                        SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-                        SDL_SetCursor(cursor);
+                        buttons[i].bgColor = originButtonColor;
+                        SDL_SetCursor(arrowCursor);
                     }
                     break;
                 default:
@@ -656,6 +771,10 @@ int main(int argc, char *argv[]) {
         SDLGraphic_ReRenderPreset(renderer, false);
     }
 
+    SDL_FreeCursor(handCursor);
+    SDL_FreeCursor(arrowCursor);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
     TTF_Quit();
     return 0;

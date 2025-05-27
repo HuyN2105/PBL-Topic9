@@ -15,7 +15,7 @@ add_executable(PBL ${CMAKE_SOURCE_DIR}/src/main.c
         include/HuyN_PBL_Graphic.h
         include/HuyN_SDL_Button.h)
 
-target_link_libraries(PBL SDL2main SDL2 SDL2_ttf)
+target_link_libraries(PBL SDL2main SDL2 SDL2_ttf comdlg32)
 
 file(COPY ${SDL2_LIB_DIR}/SDL2.dll DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${SDL2_LIB_DIR}/SDL2_ttf.dll DESTINATION ${CMAKE_BINARY_DIR})
