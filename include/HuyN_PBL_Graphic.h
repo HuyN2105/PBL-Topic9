@@ -301,13 +301,13 @@ void SDLGraphic_ConnectNode(SDL_Renderer *renderer, const SDL_Pos _p_node1, cons
     // int to string
     char buffer[20];
     sprintf(buffer, "%d", cost);
-    SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0x00, 0xFF, 0xFF, 0xFF});
+    SDL_Texture *textTexture = getTextTexture(renderer, buffer, 20, (SDL_Color){0xFF, 0x00, 0xFF, 0xFF});
 
     int textWidth, textHeight;
     SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
 
     SDL_Rect textRect = {x_midPoint - textWidth / 2, y_midPoint - textHeight / 2, textWidth, textHeight};
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xEE, 0xFF);
     SDL_RenderFillRect(renderer, &textRect);
     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
     SDL_DestroyTexture(textTexture);
